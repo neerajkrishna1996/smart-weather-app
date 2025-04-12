@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: smart-weather-app
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: OPENWEATHER_API_KEY
+        value: 13d742ea2facda093d57f84e5c7f381a
