@@ -1,31 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-Time Weather App</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <meta charset="UTF-8">
+  <title>Smart Weather App</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAbCoKgwS7DdSrXB33li7rt53osMkInC8I&libraries=places"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Real-Time Weather</h1>
-        <form action="/weather" method="POST">
-            <input type="text" name="city" placeholder="Enter city name" required>
-            <button type="submit">Get Weather</button>
-        </form>
+  <div class="container">
+    <h1>Smart Weather App</h1>
 
-        {% if weather %}
-        <div class="weather-data">
-            <h2>{{ weather.city }}</h2>
-            <p>Temperature: {{ weather.temperature }}°C</p>
-            <p>Humidity: {{ weather.humidity }}%</p>
-            <p>Pressure: {{ weather.pressure }} hPa</p>
-            <p>Wind Speed: {{ weather.wind_speed }} m/s</p>
-            <p>Precipitation: {{ weather.precipitation }} mm</p>
-        </div>
-        {% elif error %}
-        <p class="error">{{ error }}</p>
-        {% endif %}
+    <div class="search-box">
+      <input id="search-input" type="text" placeholder="Search city or pincode...">
+      <button onclick="getWeather()">Search</button>
+      <button onclick="getLocationWeather()">📍 My Location</button>
+      <ul id="suggestions"></ul>
     </div>
+
+    <div class="weather-info">
+      {% if weather %}
+        <h2>{{ weather['location'] }}</h2>
+        <img src="{{ weather['icon'] }}" alt="icon">
+        <p><strong>{{ weather['description'] }}</strong></p>
+        <p>Temperature: {{ weather['temp'] }} °C</p>
+        <p>Humidity: {{ weather['humidity'] }}%</p>
+        <p>Wind Speed: {{ weather['wind'] }} km/h</p>
+        <p>Chance of Rain: {{ weather['precip'] }}%</p>
+      {% endif %}
+    </div>
+  </div>
+
+<script>
+  function getWeather() {
+    const query = document.getElementById("search-input").value;
+    if (!query) return;
+    window.location.href = "/?city=" + query;
+  }
+
+  function getLocationWeather() {
+    navigator.geolocation.getCurrentPosition((position) => {
+      fetch(`/weather-by-location?lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(res => res.json())
+        .then(data => window.location.href = `/?city=${data.city}`);
+    });
+  }
+
+  // Autocomplete using Google Places
+  const input = document.getElementById("search-input");
+  const autocomplete = new google.maps.places.Autocomplete(input, {
+    types: ["(cities)"]
+  });
+</script>
 </body>
 </html>
