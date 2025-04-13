@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # Replace with your actual OpenWeatherMap API key
-OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "YOUR_OPENWEATHERMAP_API_KEY")
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "13d742ea2facda093d57f84e5c7f381aY")
 
 @app.route('/')
 def index():

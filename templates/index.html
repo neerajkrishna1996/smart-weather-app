@@ -1,56 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Smart Weather App</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAbCoKgwS7DdSrXB33li7rt53osMkInC8I&libraries=places"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="container">
-    <h1>Smart Weather App</h1>
+    <div class="weather-box">
+      <h1>🌤️ Smart Weather</h1>
 
-    <div class="search-box">
-      <input id="search-input" type="text" placeholder="Search city or pincode...">
-      <button onclick="getWeather()">Search</button>
-      <button onclick="getLocationWeather()">📍 My Location</button>
-      <ul id="suggestions"></ul>
-    </div>
+      <form method="POST" action="/" autocomplete="off">
+        <div class="search-bar">
+          <input type="text" id="cityInput" name="city" placeholder="Enter city or pincode" />
+          <button type="submit">🔍</button>
+        </div>
+        <ul id="suggestions" class="suggestions-list"></ul>
+      </form>
 
-    <div class="weather-info">
+      <button id="detectLocation">📍 Use My Location</button>
+
       {% if weather %}
-        <h2>{{ weather['location'] }}</h2>
-        <img src="{{ weather['icon'] }}" alt="icon">
-        <p><strong>{{ weather['description'] }}</strong></p>
-        <p>Temperature: {{ weather['temp'] }} °C</p>
-        <p>Humidity: {{ weather['humidity'] }}%</p>
-        <p>Wind Speed: {{ weather['wind'] }} km/h</p>
-        <p>Chance of Rain: {{ weather['precip'] }}%</p>
+        <div class="weather-info">
+          <h2>{{ weather.city }}</h2>
+          <img src="{{ weather.icon_url }}" alt="Weather Icon" class="weather-icon">
+          <p>{{ weather.description }}</p>
+          <p>🌡 Temperature: {{ weather.temperature }}°C</p>
+          <p>💧 Humidity: {{ weather.humidity }}%</p>
+          <p>🌬 Wind Speed: {{ weather.wind_speed }} km/h</p>
+          <p>🌧 Precipitation Chance: {{ weather.precipitation }}%</p>
+        </div>
       {% endif %}
     </div>
   </div>
 
-<script>
-  function getWeather() {
-    const query = document.getElementById("search-input").value;
-    if (!query) return;
-    window.location.href = "/?city=" + query;
-  }
+  <script>
+    const cityInput = document.getElementById('cityInput');
+    const suggestions = document.getElementById('suggestions');
+    const detectBtn = document.getElementById('detectLocation');
 
-  function getLocationWeather() {
-    navigator.geolocation.getCurrentPosition((position) => {
-      fetch(`/weather-by-location?lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
-        .then(res => res.json())
-        .then(data => window.location.href = `/?city=${data.city}`);
+    cityInput.addEventListener('input', async () => {
+      const query = cityInput.value.trim();
+      if (query.length < 2) {
+        suggestions.innerHTML = '';
+        return;
+      }
+
+      try {
+        const response = await fetch(`https://wft-geo-db.p.rapidapi.com/v1/geo/cities?namePrefix=${query}&limit=5`, {
+          method: 'GET',
+          headers: {
+            'X-RapidAPI-Key': '8478d944c2msheccbe34d67f291ep14d42ajsnad2a2585cb15', // Replace this
+            'X-RapidAPI-Host': 'wft-geo-db.p.rapidapi.com'
+          }
+        });
+
+        const data = await response.json();
+        suggestions.innerHTML = '';
+        data.data.forEach(city => {
+          const li = document.createElement('li');
+          li.textContent = `${city.city}, ${city.countryCode}`;
+          li.classList.add('suggestion-item');
+          li.addEventListener('click', () => {
+            cityInput.value = city.city;
+            suggestions.innerHTML = '';
+          });
+          suggestions.appendChild(li);
+        });
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+      }
     });
-  }
 
-  // Autocomplete using Google Places
-  const input = document.getElementById("search-input");
-  const autocomplete = new google.maps.places.Autocomplete(input, {
-    types: ["(cities)"]
-  });
-</script>
+    detectBtn.addEventListener('click', () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async position => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          window.location.href = `/location?lat=${lat}&lon=${lon}`;
+        }, error => {
+          alert("Location access denied.");
+        });
+      } else {
+        alert("Geolocation is not supported by this browser.");
+      }
+    });
+  </script>
 </body>
 </html>
