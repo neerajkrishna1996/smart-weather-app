@@ -1,51 +1,43 @@
 from flask import Flask, render_template, request, jsonify
 import requests
+import os
 
 app = Flask(__name__)
 
-OPENWEATHER_API_KEY = "13d742ea2facda093d57f84e5c7f381a"
-
-def get_weather_data(city_name=None, lat=None, lon=None):
-    url = "https://api.openweathermap.org/data/2.5/weather"
-    params = {
-        'appid': OPENWEATHER_API_KEY,
-        'units': 'metric'
-    }
-
-    if city_name:
-        params['q'] = city_name
-    elif lat and lon:
-        params['lat'] = lat
-        params['lon'] = lon
-
-    response = requests.get(url, params=params)
-    if response.status_code == 200:
-        data = response.json()
-        return {
-            'city': data['name'],
-            'temp': data['main']['temp'],
-            'humidity': data['main']['humidity'],
-            'wind_speed': data['wind']['speed'],
-            'summary': data['weather'][0]['main'],
-            'icon': data['weather'][0]['icon'],
-            'precipitation': data.get('pop', 0) * 100  # Fallback if 'pop' is not in data
-        }
-    return None
+# Replace with your actual OpenWeatherMap API key
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "YOUR_OPENWEATHERMAP_API_KEY")
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/weather', methods=['POST'])
-def weather():
-    data = request.get_json()
-    city = data.get('city')
-    lat = data.get('lat')
-    lon = data.get('lon')
-    weather = get_weather_data(city_name=city, lat=lat, lon=lon)
-    if weather:
-        return jsonify(weather)
-    return jsonify({'error': 'Weather data not found'}), 404
+@app.route('/weather', methods=['GET'])
+def get_weather():
+    query = request.args.get('query')  # city or pincode
+    lat = request.args.get('lat')
+    lon = request.args.get('lon')
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    if query:
+        url = f'https://api.openweathermap.org/data/2.5/weather?q={query}&appid={OPENWEATHER_API_KEY}&units=metric'
+    elif lat and lon:
+        url = f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OPENWEATHER_API_KEY}&units=metric'
+    else:
+        return jsonify({'error': 'Invalid query'}), 400
+
+    response = requests.get(url)
+    if response.status_code != 200:
+        return jsonify({'error': 'Failed to fetch weather data'}), 500
+
+    data = response.json()
+
+    weather_info = {
+        'city': data.get('name'),
+        'temperature': round(data['main']['temp']),
+        'humidity': data['main']['humidity'],
+        'wind_speed': data['wind']['speed'],
+        'summary': data['weather'][0]['main'],
+        'icon': data['weather'][0]['icon'],
+        'precipitation': data.get('rain', {}).get('1h', 0)  # fallback to 0 if missing
+    }
+
+    return jsonify(weather_info)
