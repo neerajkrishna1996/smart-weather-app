@@ -1,56 +1,50 @@
-async function getWeather() {
-    const input = document.getElementById('cityInput').value.trim();
-    if (!input) return alert("Please enter city or pincode");
+const searchInput = document.getElementById('searchInput');
+const suggestions = document.getElementById('suggestions');
+const searchBtn = document.getElementById('searchBtn');
+const locationBtn = document.getElementById('locationBtn');
 
-    const isPincode = /^\d+$/.test(input);
+const apiKey = 'YOUR_GEOAPIFY_API_KEY';  // Replace with your Geoapify API key
 
-    const response = await fetch('/get_weather', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(isPincode ? { pincode: input } : { city: input })
+searchInput.addEventListener('input', async () => {
+  const query = searchInput.value.trim();
+  if (query.length < 2) {
+    suggestions.innerHTML = '';
+    return;
+  }
+
+  const response = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&limit=5&apiKey=${apiKey}`);
+  const data = await response.json();
+
+  suggestions.innerHTML = '';
+  data.features.forEach(place => {
+    const div = document.createElement('div');
+    div.textContent = place.properties.formatted;
+    div.classList.add('suggestion-item');
+    div.addEventListener('click', () => {
+      searchInput.value = place.properties.city || place.properties.name || place.properties.postcode;
+      suggestions.innerHTML = '';
     });
+    suggestions.appendChild(div);
+  });
+});
 
-    const data = await response.json();
-    displayWeather(data);
-}
+searchBtn.addEventListener('click', () => {
+  const query = searchInput.value.trim();
+  if (query !== '') {
+    window.location.href = `/search?query=${encodeURIComponent(query)}`;
+  }
+});
 
-async function getLocation() {
-    if (!navigator.geolocation) return alert("Geolocation not supported");
-
-    navigator.geolocation.getCurrentPosition(async (position) => {
-        const { latitude, longitude } = position.coords;
-
-        const response = await fetch('/location', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ lat: latitude, lon: longitude })
-        });
-
-        const data = await response.json();
-        displayWeather(data);
+locationBtn.addEventListener('click', () => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      window.location.href = `/location?lat=${lat}&lon=${lon}`;
     }, () => {
-        alert("Unable to get location");
+      alert("Location access denied.");
     });
-}
-
-function displayWeather(data) {
-    const result = document.getElementById("weatherResult");
-    if (data.error) {
-        result.innerHTML = `<p>${data.error}</p>`;
-        return;
-    }
-
-    const temp = data.main.temp;
-    const humidity = data.main.humidity;
-    const wind = data.wind.speed;
-    const weather = data.weather[0].main;
-    const description = data.weather[0].description;
-
-    result.innerHTML = `
-        <h2>${data.name}</h2>
-        <p>Weather: ${weather} (${description})</p>
-        <p>Temperature: ${temp} °C</p>
-        <p>Humidity: ${humidity}%</p>
-        <p>Wind Speed: ${wind} m/s</p>
-    `;
-}
+  } else {
+    alert("Geolocation not supported by this browser.");
+  }
+});
