@@ -1,42 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Smart Weather App</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="icon" href="{{ url_for('static', filename='icons/weather-icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <div class="background">
-    <div class="container">
-      <h1 class="title"><img src="{{ url_for('static', filename='icons/weather.png') }}" alt="Icon" class="weather-icon"> Smart Weather</h1>
+  <div class="container">
+    <h1>Smart Weather App</h1>
+    <div class="search-section">
+      <input type="text" id="searchInput" placeholder="Enter city or pincode..." />
+      <button id="searchBtn">Search</button>
+      <button id="locationBtn">Use My Location</button>
+      <div id="suggestions" class="suggestions"></div>
+    </div>
 
-      <form id="weather-form" method="POST" action="/">
-        <input type="text" id="search-box" name="location" placeholder="Enter city or pincode" autocomplete="off" required>
-        <button type="submit" class="search-btn">🔍</button>
-        <div id="suggestions" class="suggestions"></div>
-      </form>
-
-      <button onclick="getLocation()" class="location-btn">📍 Use My Location</button>
-
-      {% if weather %}
-      <div class="weather-card fade-in">
-        <h2>{{ weather.city }}</h2>
-        <img src="{{ url_for('static', filename='icons/' + weather.icon + '.png') }}" alt="Icon" class="result-icon">
-        <p><strong>{{ weather.summary }}</strong></p>
-        <p>🌡️ Temperature: {{ weather.temp }}°C</p>
-        <p>💧 Humidity: {{ weather.humidity }}%</p>
-        <p>🌬️ Wind: {{ weather.wind }} km/h</p>
-        <p>🌧️ Precipitation Chance: {{ weather.precip }}%</p>
-      </div>
-      {% endif %}
-
-      {% if error %}
-        <p class="error">{{ error }}</p>
-      {% endif %}
+    <div class="weather-card" id="weatherCard" style="display:none;">
+      <h2 id="locationName"></h2>
+      <img id="weatherIcon" src="" alt="Weather Icon">
+      <p id="weatherSummary"></p>
+      <p><strong>Temperature:</strong> <span id="temperature"></span> °C</p>
+      <p><strong>Humidity:</strong> <span id="humidity"></span>%</p>
+      <p><strong>Wind Speed:</strong> <span id="windSpeed"></span> m/s</p>
+      <p><strong>Precipitation:</strong> <span id="precipitation"></span>%</p>
     </div>
   </div>
 
