@@ -8,46 +8,82 @@ OPENWEATHER_API_KEY = "13d742ea2facda093d57f84e5c7f381a"
 GEOAPIFY_API_KEY = "c082c17f817a40cd9b363921260920d9"
 
 @app.route('/')
-def index():
+def home():
     return render_template('index.html')
 
 @app.route('/get_weather', methods=['POST'])
 def get_weather():
-    data = request.json
+    data = request.get_json()
     city = data.get('city')
-    pincode = data.get('pincode')
+    
+    if not city:
+        return jsonify({'error': 'City name is required'}), 400
 
-    if city:
-        query = city
-    elif pincode:
-        query = pincode
-    else:
-        return jsonify({'error': 'No city or pincode provided'}), 400
-
-    url = f"https://api.openweathermap.org/data/2.5/weather?q={query}&appid={OPENWEATHER_API_KEY}&units=metric"
-    response = requests.get(url)
-
-    if response.status_code == 200:
-        return jsonify(response.json())
-    else:
+    # Get coordinates from Geoapify
+    geo_url = f"https://api.geoapify.com/v1/geocode/search?text={city}&apiKey={GEOAPIFY_API_KEY}"
+    geo_response = requests.get(geo_url).json()
+    
+    if not geo_response['features']:
         return jsonify({'error': 'City not found'}), 404
 
-@app.route('/location', methods=['POST'])
-def location():
-    data = request.json
+    coordinates = geo_response['features'][0]['geometry']['coordinates']
+    lon, lat = coordinates
+
+    # Get weather from OpenWeatherMap
+    weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OPENWEATHER_API_KEY}&units=metric"
+    weather_data = requests.get(weather_url).json()
+
+    if weather_data.get("cod") != 200:
+        return jsonify({'error': 'Weather data not found'}), 500
+
+    result = {
+        'location': weather_data.get('name'),
+        'temperature': weather_data['main']['temp'],
+        'humidity': weather_data['main']['humidity'],
+        'wind_speed': weather_data['wind']['speed'],
+        'weather': weather_data['weather'][0]['main'],
+        'icon': weather_data['weather'][0]['icon'],
+        'precipitation': weather_data.get('rain', {}).get('1h', 0),
+        'summary': weather_data['weather'][0]['description']
+    }
+
+    return jsonify(result)
+
+@app.route('/suggest_city', methods=['GET'])
+def suggest_city():
+    query = request.args.get('query')
+    geo_url = f"https://api.geoapify.com/v1/geocode/autocomplete?text={query}&apiKey={GEOAPIFY_API_KEY}&limit=5"
+    response = requests.get(geo_url).json()
+    suggestions = [feat['properties']['formatted'] for feat in response['features']]
+    return jsonify(suggestions)
+
+@app.route('/get_location_weather', methods=['POST'])
+def get_location_weather():
+    data = request.get_json()
     lat = data.get('lat')
     lon = data.get('lon')
 
     if not lat or not lon:
-        return jsonify({'error': 'Coordinates missing'}), 400
+        return jsonify({'error': 'Location required'}), 400
 
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OPENWEATHER_API_KEY}&units=metric"
-    response = requests.get(url)
+    weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OPENWEATHER_API_KEY}&units=metric"
+    weather_data = requests.get(weather_url).json()
 
-    if response.status_code == 200:
-        return jsonify(response.json())
-    else:
-        return jsonify({'error': 'Weather not found'}), 404
+    if weather_data.get("cod") != 200:
+        return jsonify({'error': 'Weather data not found'}), 500
+
+    result = {
+        'location': weather_data.get('name'),
+        'temperature': weather_data['main']['temp'],
+        'humidity': weather_data['main']['humidity'],
+        'wind_speed': weather_data['wind']['speed'],
+        'weather': weather_data['weather'][0]['main'],
+        'icon': weather_data['weather'][0]['icon'],
+        'precipitation': weather_data.get('rain', {}).get('1h', 0),
+        'summary': weather_data['weather'][0]['description']
+    }
+
+    return jsonify(result)
 
 if __name__ == '__main__':
     app.run(debug=True)
