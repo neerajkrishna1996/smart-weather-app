@@ -1,107 +1,126 @@
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Roboto', sans-serif;
-    background: url('/static/images/weather-bg.jpg') no-repeat center center/cover;
-    color: white;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .container {
-    background: rgba(0, 0, 0, 0.55);
-    padding: 30px;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-    text-align: center;
-    animation: fadeIn 1.2s ease-in-out;
-  }
-  
-  h1 {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-  }
-  
-  form .search-container {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 15px;
-  }
-  
-  input[type="text"] {
-    padding: 10px;
-    width: 70%;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-  }
-  
-  button {
-    background-color: #4fc3f7;
-    border: none;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s ease;
-  }
-  
-  button:hover {
-    background-color: #039be5;
-  }
-  
-  #suggestions-list {
-    list-style: none;
-    padding: 0;
-    margin-top: 5px;
-    max-height: 100px;
-    overflow-y: auto;
-    background: #222;
-    border-radius: 5px;
-    position: absolute;
-    width: 90%;
-    left: 5%;
-  }
-  
-  #suggestions-list li {
-    padding: 8px;
-    cursor: pointer;
-    color: white;
-  }
-  
-  #suggestions-list li:hover {
-    background: #444;
-  }
-  
-  .result {
-    margin-top: 20px;
-    animation: fadeInUp 1s ease-in-out;
-  }
-  
-  .weather-icon img {
-    width: 100px;
-    height: 100px;
-  }
-  
-  .summary {
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-transform: capitalize;
-    margin-bottom: 10px;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body, html {
+  height: 100%;
+}
+
+.background {
+  background-image: url("https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1950&q=80");
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  background: rgba(0, 0, 0, 0.55);
+  padding: 40px 30px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  animation: fade-in 1s ease-in-out;
+}
+
+.title {
+  font-size: 32px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.weather-icon {
+  height: 35px;
+  margin-right: 10px;
+}
+
+#search-box {
+  width: 75%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px 0 0 8px;
+  font-size: 16px;
+}
+
+.search-btn {
+  width: 15%;
+  padding: 12px;
+  background-color: #4fa6ff;
+  color: white;
+  font-size: 18px;
+  border: none;
+  border-radius: 0 8px 8px 0;
+  cursor: pointer;
+}
+
+.location-btn {
+  margin-top: 15px;
+  padding: 10px 15px;
+  font-size: 14px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.location-btn:hover {
+  background-color: #0d8ae6;
+}
+
+.weather-card {
+  background: rgba(255, 255, 255, 0.1);
+  margin-top: 25px;
+  border-radius: 16px;
+  padding: 20px;
+  animation: fade-in 1.2s ease-in-out;
+}
+
+.result-icon {
+  width: 80px;
+  margin: 10px 0;
+}
+
+.error {
+  color: red;
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.suggestions {
+  background: white;
+  color: black;
+  position: absolute;
+  width: 72%;
+  left: 13%;
+  border-radius: 0 0 6px 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 1000;
+  border: 1px solid #ccc;
+}
+
+.suggestions div {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.suggestions div:hover {
+  background-color: #f2f2f2;
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
