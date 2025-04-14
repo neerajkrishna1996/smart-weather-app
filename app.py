@@ -4,8 +4,8 @@ import os
 
 app = Flask(__name__)
 
-OPENWEATHER_API_KEY = "13d742ea2facda093d57f84e5c7f381a"
-GEOAPIFY_API_KEY = "c082c17f817a40cd9b363921260920d9"
+OPENWEATHER_API_KEY = "your_openweathermap_api_key"
+GEOAPIFY_API_KEY = "your_geoapify_api_key"
 
 @app.route('/')
 def home():
